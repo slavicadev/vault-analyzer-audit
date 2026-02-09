@@ -1,0 +1,82 @@
+[
+  {
+    "pattern": "aws/creds/ (READ)",
+    "advice": "The Vault server attempted to generate dynamic cloud credentials but was denied by the AWS API; this indicates the Vault server's own IAM role lacks the necessary permissions (e.g., iam:CreateAccessKey) in the target account.",
+    "comment": "Specific Cloud Failure."
+  },
+  {
+    "pattern": "database/creds/ (READ)",
+    "advice": "The Vault server failed to establish a network connection to the configured backend database host; this prevents the dynamic generation of database credentials.",
+    "comment": "Specific Database Failure."
+  },
+  {
+    "pattern": "auth/oidc/oidc/callback",
+    "advice": "The OIDC login flow failed during the callback phase; this typically occurs when the Identity Provider (IdP) rejects the redirect URI or detects a clock skew between systems.",
+    "comment": "Specific Identity Provider failure."
+  },
+  {
+    "pattern": "auth/saml/login (UPDATE)",
+    "advice": "The SAML assertion provided by the Identity Provider lacks the required attributes (such as 'groups' or 'email') necessary for Vault to map the user to an internal role.",
+    "comment": "Specific SAML failure."
+  },
+  {
+    "pattern": "auth/jwt/login (UPDATE)",
+    "advice": "The provided JWT or Kubernetes Service Account token was rejected; the token is either expired, invalid, or contains an 'issuer' claim that does not match the Vault configuration.",
+    "comment": "Specific K8s/JWT failure."
+  },
+  {
+    "pattern": "transit/",
+    "advice": "A cryptographic operation (encrypt/decrypt/sign) failed; the requesting token likely lacks the 'update' capability for the specific key path, or the key name does not exist.",
+    "comment": "Catch-all for Transit/Crypto operations."
+  },
+  {
+    "pattern": "sys/audit/ (UPDATE)",
+    "advice": "A privileged request to disable or modify an audit device; this operation requires 'sudo' capability and is critical to the security posture of the cluster.",
+    "comment": "Critical security tampering check."
+  },
+  {
+    "pattern": "sys/policies/acl (UPDATE)",
+    "advice": "A request to create or modify an ACL policy failed; the authenticated token lacks the administrative 'sudo' or 'create' capabilities required for policy management.",
+    "comment": "Policy management failure."
+  },
+  {
+    "pattern": "sys/internal/ui/ (READ)",
+    "advice": "The Vault Web UI attempted to auto-discover the configuration of a mount point but was blocked by policy; this is a background UI check and generally benign.",
+    "comment": "Internal UI API noise."
+  },
+  {
+    "pattern": "/login (UPDATE) -> invalid character",
+    "advice": "The authentication request payload contained invalid JSON syntax or illegal characters; this is often caused by empty variables in automated CI/CD pipelines.",
+    "comment": "Matches any auth method with bad payload."
+  },
+  {
+    "pattern": "sys/leases/renew (UPDATE)",
+    "advice": "The request to renew a dynamic secret or token failed because the item has reached its maximum Time-To-Live (TTL); the client must re-authenticate to obtain a new lease.",
+    "comment": "Lifecycle check for secrets."
+  },
+  {
+    "pattern": "auth/token/lookup-self",
+    "advice": "The client attempted to validate a token that has already been revoked or expired; the application loop indicates it is unaware its session is dead.",
+    "comment": "Lifecycle check for tokens."
+  },
+  {
+    "pattern": "unsupported path",
+    "advice": "A request against an auth method or secrets engine using an unsupported endpoint path (possibly due to typo in the request).",
+    "comment": "General Error Type 3: Typo/Invalid URL."
+  },
+  {
+    "pattern": "missing client token",
+    "advice": "The request was made without an X-Vault-Token header; if this is a UI path, it likely indicates a user landing on the login page before authenticating.",
+    "comment": "General Error Type 4: Missing Header."
+  },
+  {
+    "pattern": "invalid token",
+    "advice": "A request to an authenticated endpoint without providing a valid client token.",
+    "comment": "General Error Type 2: Missing Authentication."
+  },
+  {
+    "pattern": "permission denied",
+    "advice": "The client token used in the request lacks the required capabilities for the requested endpoint; this is perhaps the most common error you will find in audit device logs.",
+    "comment": "General Error Type 1: Policy Restriction."
+  }
+]
